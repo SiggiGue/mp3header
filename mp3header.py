@@ -38,6 +38,7 @@ mp3info.len_sec
 
 Author: Siegfried Gündert
 
+MIT licensed.
 """
 import os
 from json import dumps

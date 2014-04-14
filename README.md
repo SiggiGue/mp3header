@@ -15,7 +15,7 @@ import mp3header
 header = mp3header.read('Test.mp3')
 header
 """ this returns:
->>> {'BitRate': 128,
+{'BitRate': 128,
  'ChannelMode': (2, 'Stereo'),
  'Copyright': False,
  'Emphasis': 'no emphasis',
@@ -32,7 +32,32 @@ header
 # a bit fancier: object oriented with estimate of the length in sec
 # use the Mp3Info() object:
 
-mp3info = mp3header.Mp3Info('Test.mp3')
-mp3info.header
-mp3info.len_sec
+h = mp3header.Mp3Info('Test.mp3')
+
+h
+Out[4]: 
+{
+    "ModeExtension": "Intensity-Stereo: off; M/S-Stereo: off", 
+    "Layer": "Layer III", 
+    "Copyright": false, 
+    "ErrorProtection": "keine CRC", 
+    "Sync": true, 
+    "Private": false, 
+    "Padding": "Frame will not be filled up", 
+    "Emphasis": "no emphasis", 
+    "Version": "MPEG 1", 
+    "ChannelMode": [
+        2, 
+        "Stereo"
+    ], 
+    "SampleRate": 44100, 
+    "BitRate": 128, 
+    "Original": true
+}
+
+h.len_sec
+Out[5]: 36.6496875
+
 ```
+
+MIT licensed.
