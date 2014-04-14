@@ -14,6 +14,7 @@ import mp3header
 
 header = mp3header.read('Test.mp3')
 header
+""" this returns:
 >>> {'BitRate': 128,
  'ChannelMode': (2, 'Stereo'),
  'Copyright': False,
@@ -27,7 +28,7 @@ header
  'SampleRate': 44100,
  'Sync': True,
  'Version': 'MPEG 1'}
- 
+"""
 # a bit fancier: object oriented with estimate of the length in sec
 # use the Mp3Info() object:
 
