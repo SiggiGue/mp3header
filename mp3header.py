@@ -9,10 +9,10 @@ Examples
 import mp3header
 
 
-# the read() function is very simple it just returns
+# the parse() function is very simple it just returns
 # the content of the header as follows:
 
-header = mp3header.read('Test.mp3')
+header = mp3header.parse('Test.mp3')
 header
 >>> {'BitRate': 128,
  'ChannelMode': (2, 'Stereo'),
@@ -27,7 +27,7 @@ header
  'SampleRate': 44100,
  'Sync': True,
  'Version': 'MPEG 1'}
- 
+
 # a bit fancier: object oriented with estimate of the length in sec
 # use the Mp3Info() object:
 
@@ -41,7 +41,6 @@ Author: Siegfried Gündert
 """
 import os
 from json import dumps
-
 
 # the length of the mp3 header is 4 bytes
 num_bytes_mp3_header = 4
@@ -66,7 +65,7 @@ element_bits = [
 
 # each header element covers a possible range of integers
 # some elements are dependent on other elements of the header.
-# For example the element 'SampleRate' depends on the  element 
+# For example the element 'SampleRate' depends on the  element
 # 'Version'. This data structure is implemented in the
 # following dictionary:
 element_description = {
@@ -150,7 +149,7 @@ element_description = {
                 1: 12000,
                 2: 8000,
             },
-        }
+        },
     },
     'Padding': {
         0: 'Frame will not be filled up',
@@ -168,23 +167,24 @@ element_description = {
     },
     'ModeExtension': { # TODO
         'Layer': {
-                    0: 'Subbands 4 to 31',
-                    1: 'Subbands 8 to 31',
-                    2: 'Subbands 12 to 31',
-                    3: 'Subbands 16 to 31',
-                },
+            'Layer I': {
+                0: 'Subbands 4 to 31',
+                1: 'Subbands 8 to 31',
+                2: 'Subbands 12 to 31',
+                3: 'Subbands 16 to 31',
+            },
             'Layer II': {
-                    0: 'Subbands 4 to 31',
-                    1: 'Subbands 8 to 31',
-                    2: 'Subbands 12 to 31',
-                    3: 'Subbands 16 to 31',
-                },
+                0: 'Subbands 4 to 31',
+                1: 'Subbands 8 to 31',
+                2: 'Subbands 12 to 31',
+                3: 'Subbands 16 to 31',
+            },
             'Layer III': {
-                    0: 'Intensity-Stereo: off; M/S-Stereo: off',
-                    1: 'Intensity-Stereo: on; M/S-Stereo: off',
-                    2: 'Intensity-Stereo: off; M/S-Stereo: on',
-                    3: 'Intensity-Stereo: on; M/S-Stereo: on',
-                },
+                0: 'Intensity-Stereo: off; M/S-Stereo: off',
+                1: 'Intensity-Stereo: on; M/S-Stereo: off',
+                2: 'Intensity-Stereo: off; M/S-Stereo: on',
+                3: 'Intensity-Stereo: on; M/S-Stereo: on',
+            },
         },
     },
     'Copyright': {
@@ -204,15 +204,15 @@ element_description = {
 }
 
 
-def _read_header_bytes_as_bitstr(path, num_bytes=num_bytes_mp3_header):
+def _parse_header_bytes_as_bitstr(path, num_bytes=num_bytes_mp3_header):
     """ Returns a string containing zeros and ones
-    the function reads the first num_bytes from the file specified by <path>.
+    the function parses the first num_bytes from the file specified by <path>.
     the string has 8*num_bytes digits
 
     Parameters
     ----------
     path : string, containing path to a mp3-file
-    num_bytes : number of bytes to read from the beginning of the file
+    num_bytes : number of bytes to parse from the beginning of the file
 
     Returns
     -------
@@ -300,7 +300,7 @@ def _get_description_from_header_values_dict(header_values_dict,
     return header_describtions_dict
 
 
-def read(path):
+def parse(path):
     """ Returns mp3 header information as dictionary.
 
     Parameters
@@ -311,7 +311,7 @@ def read(path):
     -------
     header_descriptionsd : dictionary, keys
     """
-    header_bitstr = _read_header_bytes_as_bitstr(path)
+    header_bitstr = _parse_header_bytes_as_bitstr(path)
     header_valuesd = _get_header_values_dict_from_header_bytes(header_bitstr)
     header_descriptionsd = _get_description_from_header_values_dict(header_valuesd)
     return header_descriptionsd
@@ -342,7 +342,7 @@ class Mp3Info:
         self._path = path
         self._bits_per_byte = 8
 
-        self._header_bitstr = _read_header_bytes_as_bitstr(
+        self._header_bitstr = _parse_header_bytes_as_bitstr(
             self._path)
 
         self._header_valuesd = _get_header_values_dict_from_header_bytes(
@@ -359,23 +359,23 @@ class Mp3Info:
 
     def __repr__(self):
         return dumps(self.header, indent=4)
-    
+
     @property
     def header(self):
         """ Returns header information as dictionary """
-        return self._header_descriptionsd
+        return dict(self._header_descriptionsd)
 
     @property
     def header_valuesd(self):
         """ Returns the header as dictionary, keys are
         the elements and values are integers
         """
-        return self._header_valuesd
+        return dict(self._header_valuesd)
 
     @property
     def header_bitstr(self):
         """ Returns the header as bit string """
-        return self._header_bitstr
+        return dict(self._header_bitstr)
 
     @property
     def bit_rate(self):
