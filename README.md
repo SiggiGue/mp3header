@@ -9,10 +9,10 @@ Examples
 import mp3header
 
 
-# the read() function is very simple it just returns
+# the parse() function is very simple it just returns
 # the content of the header as follows:
 
-header = mp3header.read('Test.mp3')
+header = mp3header.parse('Test.mp3')
 header
 """ this returns:
 {'BitRate': 128,
