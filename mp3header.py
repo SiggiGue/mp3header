@@ -1,20 +1,19 @@
 # -- coding: utf-8 --
-"""
-This module implements a solution to read the header information of mp3 files.
+"""This module implements a solution to read the header information of mp3 files.
 Additionally an estimate for the length of the mp3 files is implemented.
 
 Examples
 --------
 
-import mp3header
+>>> import mp3header
 
+The parse() function is very simple it just returns
+the content of the header as follows:
 
-# the parse() function is very simple it just returns
-# the content of the header as follows:
-
-header = mp3header.parse('Test.mp3')
-header
->>> {'BitRate': 128,
+>>> header = mp3header.parse('Test.mp3')
+>>> header
+returns:
+{'BitRate': 128,
  'ChannelMode': (2, 'Stereo'),
  'Copyright': False,
  'Emphasis': 'no emphasis',
@@ -28,17 +27,17 @@ header
  'Sync': True,
  'Version': 'MPEG 1'}
 
-# a bit fancier: object oriented with estimate of the length in sec
-# use the Mp3Info() object:
+A bit fancier: object oriented with an estimate of the length in seconds
+use the Mp3Info() object:
 
-mp3info = mp3header.Mp3Info('Test.mp3')
-mp3info.header
-mp3info.len_sec
+>>> mp3info = mp3header.Mp3Info('Test.mp3')
+>>> mp3info.header
+>>> mp3info.len_sec_estimate
 
 
 Author: Siegfried Gündert
-
 MIT licensed.
+
 """
 import os
 from json import dumps
@@ -47,7 +46,7 @@ from json import dumps
 num_bytes_mp3_header = 4
 
 # list of header element names and the
-# number of bits reserved for the element
+# number of bits reserved for the element:
 element_bits = [
     ('Sync', 11),
     ('Version', 2),
@@ -64,7 +63,7 @@ element_bits = [
     ('Emphasis', 2),
 ]
 
-# each header element covers a possible range of integers
+# Each header element covers a possible range of integers
 # some elements are dependent on other elements of the header.
 # For example the element 'SampleRate' depends on the  element
 # 'Version'. This data structure is implemented in the
@@ -75,19 +74,19 @@ element_description = {
     },
     'Version': {
         0: 'MPEG 2.5',
-        1: None,
+        1:  None,
         2: 'MPEG 2',
         3: 'MPEG 1',
     },
     'Layer': {
-        0: None,
+        0:  None,
         1: 'Layer III',
         2: 'Layer II',
         3: 'Layer I',
     },
     'ErrorProtection': {
- 	0: '16-Bit CRC nach dem Header',
-        1: 'keine CRC',
+ 	0: '16-Bit CRC behind the header.',
+        1: 'No CRC.',
     },
     'BitRate': {
         'Version': {
@@ -153,8 +152,8 @@ element_description = {
         },
     },
     'Padding': {
-        0: 'Frame will not be filled up',
-        1: 'Frame will be filled with extra slot',
+        0: 'Frame will not be filled up.',
+        1: 'Frame will be filled with extra slot.',
     },
     'Private': {
         0: False,
@@ -163,7 +162,7 @@ element_description = {
     'ChannelMode': {
         0: (2, 'Stereo'),
         1: (2, 'Joint Stereo'),
-        2: (2, '2 Mono Kanäle'),
+        2: (2, '2 Mono Channels'),
         3: (1, 'Mono'),
     },
     'ModeExtension': { # TODO
@@ -197,27 +196,31 @@ element_description = {
         1: True,
     },
     'Emphasis': {
-        0: 'no emphasis',
+        0: 'No emphasis',
         1: '50/15 ms',
-        2: 'reserved',
+        2: 'Reserved',
         3: 'ITU-T J.17',
     },
 }
 
 
 def _parse_header_bytes_as_bitstr(path, num_bytes=num_bytes_mp3_header):
-    """ Returns a string containing zeros and ones
-    the function parses the first num_bytes from the file specified by <path>.
-    the string has 8*num_bytes digits
+    """Returns a string containing zeros and ones.
+    The function parses the first num_bytes from the file specified by `path`.
+    The string has 8*`num_bytes` digits.
 
     Parameters
     ----------
-    path : string, containing path to a mp3-file
-    num_bytes : number of bytes to parse from the beginning of the file
+    path : str
+        String, containing path to your mp3-file.
+    num_bytes : int
+        Number of bytes to parse from the beginning of the file.
 
     Returns
     -------
-    header_bytes_bit_string : string with zeros an ones denoting the bits
+    header_bytes_bit_string : str
+        String with zeros an ones denoting the bits.
+
     """
 
     header_bytes_bit_string = list()
@@ -232,19 +235,23 @@ def _parse_header_bytes_as_bitstr(path, num_bytes=num_bytes_mp3_header):
 
 def _get_header_values_dict_from_header_bytes(header_bytes_bit_string,
                                               element_bits=element_bits):
-    """ Returns a dict bith integer values from n bits defined by
+    """Returns a dict with integer values from n bits defined by
     the list element_bits= [('key', nbits), ('',...)]
 
     Parameters
     ----------
-    header_bytes_bit_string : string with zeros an ones denoting the bits
-    element_bits : list of header element names and the
-        number of bits reserved for the element (example: [('Elmnt1', 4), ...])
+    header_bytes_bit_string : str
+        String with zeros an ones denoting the bits.
+    element_bits : list
+        List of header element names and the
+        number of bits reserved for the element (example: [('Elmnt1', 4), ...]).
 
     Returns
     -------
-    header_values_dict : dictionary, keys are the elements and values are
-        integers of the bits
+    header_values_dict : dict
+        Keys are the elements and values are
+        integers values of the bits.
+
     """
 
     header_values_dict = dict()
@@ -258,27 +265,31 @@ def _get_header_values_dict_from_header_bytes(header_bytes_bit_string,
 
 def _get_description_from_header_values_dict(header_values_dict,
                                              element_description=element_description):
-    """ Returns a dictionary containing the descriptions of the header values
-    mapped by <element_description>.
+    """Returns a dictionary containing the descriptions of the header values
+    mapped by `element_description`.
     This function performs something like a hierarchical mapping of key-value pairs.
-    It turns the integer values in the <header_values_dict>
+    It turns the integer values in the `header_values_dict`
     to the according descriptions. For example the specifications
     of mp3 files.
 
     Parameters
     ----------
-    header_values_dict : dictionary, keys are the header elements and values are
-        integers of the bits
+    header_values_dict : dict
+        Dictionary, keys are the header elements and values are
+        integer values of the bits.
 
-    element_description : dictionary, keys are header element names and the
+    element_description : dict
+        Dictionary, keys are header element names and the
         values are possible descriptions for given integer values. See the
-        strucure of mp3header.element_description and the corresponding docstring
+        strucure of `mp3header.element_description` and the corresponding docstring.
 
     Returns
     -------
-    header_describtions_dict : dictionary, keys are the elements of the header and
+    header_describtions_dict : dict
+        Dictionary, keys are the elements of the header and
         and values are the descriptions for the specific integer value
         given by header_values_dict.
+
     """
 
     def get_description_recursive(description, value):
@@ -302,15 +313,20 @@ def _get_description_from_header_values_dict(header_values_dict,
 
 
 def parse(path):
-    """ Returns mp3 header information as dictionary.
+    """Returns mp3 header information as dictionary.
 
     Parameters
     ----------
-    path : string, containing the path to an mp3-file
+    path : str
+        String, containing the path to an mp3-file.
 
     Returns
     -------
-    header_descriptionsd : dictionary, keys
+    header_descriptionsd : dict
+        Dictionary, keys are the elements of the header and
+        and values are the descriptions for the specific integer value
+        given by header_values_dict.
+
     """
     header_bitstr = _parse_header_bytes_as_bitstr(path)
     header_valuesd = _get_header_values_dict_from_header_bytes(header_bitstr)
@@ -319,18 +335,18 @@ def parse(path):
 
 
 class Mp3Info:
-    """
-    Return an object providing
+    """Returns an object providing
     header information about a specified mp3-file
     and an estimate about the length in seconds.
 
     Parameters
     ----------
-    path : string, containing the path to an mp3-file
+    path : str
+        String, containing the path to an mp3-file
 
     Returns
     -------
-    obj: Mp3Info object
+    obj : Mp3Info object
 
     Examples
     --------
@@ -363,47 +379,47 @@ class Mp3Info:
 
     @property
     def header(self):
-        """ Returns header information as dictionary """
+        """Returns header information as dictionary."""
         return dict(self._header_descriptionsd)
 
     @property
     def header_valuesd(self):
-        """ Returns the header as dictionary, keys are
-        the elements and values are integers
+        """Returns the header as dictionary, keys are
+        the elements and values are integers.
         """
         return dict(self._header_valuesd)
 
     @property
     def header_bitstr(self):
-        """ Returns the header as bit string """
+        """Returns the header as bit string."""
         return dict(self._header_bitstr)
 
     @property
     def bit_rate(self):
-        """ Returns bit rate in kbyte/s """
+        """Returns bit rate in kbyte/s."""
         return self._header_descriptionsd['BitRate']
 
     @property
     def sample_rate(self):
-        """ Returns sample rate in hertz """
+        """Returns sample rate in hertz."""
         return self._header_descriptionsd['SampleRate']
 
     @property
     def channels(self):
-        """ Returns the number of channels """
+        """Returns the number of channels."""
         return self._header_descriptionsd['ChannelMode'][0]
 
     @property
     def mode(self):
-        """ Returns the mode of the mp3-file (Stereo, Mono, Joint Stereo) """
+        """Returns the mode of the mp3-file (Stereo, Mono, Joint Stereo)."""
         return self._header_descriptionsd['ChannelMode'][1]
 
     @property
     def size(self):
-        """ Returns the file size in byte """
+        """Returns the file size in byte."""
         return os.path.getsize(self._path)
 
     @property
-    def len_sec(self):
-        """ Returns the mp3-file length in seconds """
+    def len_sec_estimate(self):
+        """Returns estimate of the mp3-file length in seconds."""
         return 1e-3 * self.size * self._bits_per_byte / self.bit_rate
